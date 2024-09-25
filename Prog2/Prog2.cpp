@@ -14,4 +14,6 @@ int main(){
 
       std::cout<<" x is "<<x<<" and y is "<< y <<"and the sum is "<<*ptr1+*ptr2<<std::endl;
       // so the contents inside the addresses that ptr1 & ptr2 is summed and printed.
+
+      return 0;
 }
