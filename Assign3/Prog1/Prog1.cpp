@@ -1,32 +1,34 @@
 #include <iostream>
-#include "calc.cpp"  // basically intertwines the other .cpp program
 
-int main(){
-  // variable declarations
-    int input{};
-    int pennies{};
-    int dimes{};
-    int quarters{};
+extern int quarters;
+extern int dimes;
+extern int nickels;
+extern int pennies;
 
+//letting the compiler know that there is a function
+void calculateChange(int purchase);
 
-    std::cout<<"Enter a positive integer (<=100) : ";
+int main() {
+    // Prompt the user for a input
+    int input;
+    std::cout << "Enter a purchase amount in pennies (<= 100): ";
     std::cin >> input;
 
-   // while loop in case the user doesn't input the value we donot allow
-    while(input > 100 || input < 0) {
-        std::cout<<" Please enter a positive integer <=100 :  ";
-        std::cin>>input;
+    // while looop if the user enters anything less than a 0 and greater than 100
+    while(input <= 0 || input > 100){
+        std::cout << "Enter a purchase amount in pennies (<= 100): ";
+        std::cin >> input;
     }
 
-   // passes input as the parameter to their respective functions and gets a return value
-    pennies = calcPennies(input);
-    dimes = calcDimes(input);
-    quarters = calcQuarters(input);
+    // Calculate the change
+    calculateChange(input);
 
-    // the lines below print the currencies using the values returned
-    std::cout << "The amount of quarters in " << input << "$ is " << quarters <<'\n' << std::endl;
-    std::cout << "The amount of dimes in " << input << "$ is " << dimes <<'\n' << std::endl;
-    std::cout << "The amount of pennies in " << input << "$ is " << pennies <<'\n' << std::endl;
+    // Display the results
+    std::cout << "Change from a dollar:" << std::endl;
+    std::cout << "Quarters: " << quarters << std::endl;
+    std::cout << "Dimes: " << dimes << std::endl;
+    std::cout << "Nickels: " << nickels << std::endl;
+    std::cout << "Pennies: " << pennies << std::endl;
 
     return 0;
 }
