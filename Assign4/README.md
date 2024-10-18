@@ -1,3 +1,29 @@
+CRAP GAME & CONWAY'S GAME OF LIFE
+
+
+This program simulates the dice game of Craps, allowing users to place bets and play against the house. 
+Players roll two dice, with the game following specific rules to determine wins and losses based on the rolled totals.
+
+Features
+    
+    Players start with 100 credits and can wager amounts within their balance.
+    Clear outcomes based on the rules of Craps:
+    Win on the first roll with a total of 7 or 11.
+    Lose on the first roll with a total of 2, 3, or 12.
+    Establish a point for totals of 4, 5, 6, 8, 9, or 10, requiring further rolls to win or lose.
+    Option to play multiple rounds until the player chooses to exit or runs out of credits.
+
+Compile & run the program
+
+    g++ -o crap Prog2.cpp
+    ./crap
+
+
+Players are prompted to enter a wager amount before each round.
+Valid wagers must be greater than 0 and not exceed the current credit balance.
+Follow the on-screen messages to understand the outcome of each roll and the game.
+
+
 
 Conway's Game of Life in C++
 
