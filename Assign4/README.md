@@ -24,6 +24,7 @@ Valid wagers must be greater than 0 and not exceed the current credit balance.
 Follow the on-screen messages to understand the outcome of each roll and the game.
 
 
+--------------------------------------------------------------------------------------------------------
 
 Conway's Game of Life in C++
 
