@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -12,13 +11,13 @@ template <class T>
 using VEC = std::vector<ELEM<T>>;
 
 template <class T>
-using action_t = T (*)(int);
+using action_t = std::function<T(int)>;
 
 template <class T>
-using pred_t = bool (*)(T);
+using pred_t = std::function<bool(T)>;
 
 template <class T>
-using map_t = T (*)(T, T);
+using map_t = std::function<T(T, T)>;
 
 // Function prototypes
 template <class T>
@@ -132,54 +131,67 @@ ELEM<T> reduce(VEC<T> &v, map_t<T> f, ELEM<T> ident) {
 
 // Main program
 int main() {
+    // Initialize two vectors of integers
     VEC<int> v;
     initVec(v, ELEM<int>{1, 2, 3, 4});
 
     VEC<int> w;
     initVec(w, ELEM<int>{-1, 3, -3, 4});
+
+    std::cout << "Initial Vectors:" << std::endl;
     printVec(v);
     printVec(w);
 
     std::cout << std::string(10, '*') << std::endl;
 
+    // Zip v and w
     VEC<int> z = zip(v, w);
     printVec(z);
 
     std::cout << std::string(10, '*') << std::endl;
 
+    // Zip z with itself
     VEC<int> x = zip(z, z);
     printVec(x);
 
     std::cout << std::string(10, '*') << std::endl;
 
-    VEC<int> a = generate(10, [](int x) { return x * x; }); // Function to generate squares
+    // Generate squares of numbers from 0 to 9
+    VEC<int> a = generate(10, [](int x) { return x * x; });
     printVec(a);
 
-    VEC<int> y = filter(w, [](int x) { return x > 0; }); // Filter positive values
+    // Filter out non-positive numbers from w
+    VEC<int> y = filter(w, [](int x) { return x > 0; });
     printVec(y);
 
-    VEC<int> u = map(w, [](int x) { return x > 0 ? 1 : 0; }); // Map to 1 if positive, 0 otherwise
+    // Map positive numbers in w to 1 and others to 0
+    VEC<int> u = map(w, [](int x) { return x > 0 ? 1 : 0; });
     printVec(u);
 
-    ELEM<int> e = reduce(u, [](int x, int y) { return x + y; }, ELEM<int>{0}); // Reduce to sum
+    // Reduce u to sum of elements
+    ELEM<int> e = reduce(u, [](int x, int y) { return x + y; }, ELEM<int>{0});
     printElem(e);
 
     std::cout << std::endl << std::string(10, '$') << std::endl;
 
+    // Initialize vector of strings
     VEC<std::string> ws;
     initVec(ws, ELEM<std::string>{"hello", "there", "franco", "carlacci"});
     printVec(ws);
 
+    // Reduce strings to a single string
     ELEM<std::string> es = reduce(ws, [](std::string a, std::string b) { return a + " " + b; }, ELEM<std::string>{""});
     printElem(es);
 
+    // Initialize vector of characters
     VEC<char> wc;
     initVec(wc, ELEM<char>{'a', 'b', 'c', 'd'});
 
     std::cout << std::endl << std::string(10, '$') << std::endl;
     printVec(wc);
 
-    ELEM<char> ec = reduce(wc, [](char a, char b) { return a > b ? a : b; }, ELEM<char>{' '}); // Reduce to max char
+    // Reduce characters to the maximum character
+    ELEM<char> ec = reduce(wc, [](char a, char b) { return a > b ? a : b; }, ELEM<char>{' '});
     std::cout << std::endl << std::string(10, '$') << std::endl;
     printElem(ec);
 
