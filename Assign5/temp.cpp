@@ -1,9 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <functional>
+#include <algorithm>
 
-// Define the template types
+// Template Type Aliases
 template <class T>
 using ELEM = std::vector<T>;
 
@@ -11,187 +11,170 @@ template <class T>
 using VEC = std::vector<ELEM<T>>;
 
 template <class T>
-using action_t = std::function<T(int)>;
+using action_t = T(*)(int);
 
 template <class T>
-using pred_t = std::function<bool(T)>;
+using pred_t = bool(*)(T);
 
 template <class T>
-using map_t = std::function<T(T, T)>;
+using map_t = T(*)(T, T);
 
-// Function prototypes
+// Function to print an ELEM<T>
 template <class T>
-void printElem(ELEM<T> &v);
-
-template <class T>
-void initVec(VEC<T> &v, ELEM<T> &&cons);
-
-template <class T>
-void printVec(VEC<T> &v);
-
-template <class T>
-VEC<T> generate(int N, action_t<T> f);
-
-template <class T>
-VEC<T> zip(VEC<T> &v, VEC<T> &w);
-
-template <class T>
-VEC<T> filter(VEC<T> &v, pred_t<T> f);
-
-template <class T>
-VEC<T> map(VEC<T> &v, action_t<T> f);
-
-template <class T>
-ELEM<T> reduce(VEC<T> &v, map_t<T> f, ELEM<T> ident);
-
-// Function implementations
-template <class T>
-void printElem(ELEM<T> &v) {
-    for (const T &elem : v) {
-        std::cout << elem << " ";
+void printElem(ELEM<T>& v) {
+    std::cout << "[";
+    for (size_t i = 0; i < v.size(); ++i) {
+        std::cout << v[i];
+        if (i < v.size() - 1) std::cout << " , ";
     }
-    std::cout << std::endl;
+    std::cout << "]";
 }
 
+// Function to initialize a VEC<T>
 template <class T>
-void initVec(VEC<T> &v, ELEM<T> &&cons) {
-    v.push_back(std::move(cons));
+void initVec(VEC<T>& v, ELEM<T>&& cons) {
+    v.push_back(cons);
 }
 
+// Function to print a VEC<T>
 template <class T>
-void printVec(VEC<T> &v) {
-    for (auto &elem : v) {
-        printElem(elem);
+void printVec(VEC<T>& v) {
+    std::cout << "[";
+    for (size_t i = 0; i < v.size(); ++i) {
+        if (v[i].size() == 1) {
+            // If the ELEM<T> has only one element, print it directly
+            std::cout << v[i][0];
+        } else {
+            // Otherwise, print the ELEM<T> as a group with parentheses
+            std::cout << "(";
+            for (size_t j = 0; j < v[i].size(); ++j) {
+                std::cout << v[i][j];
+                if (j < v[i].size() - 1) std::cout << " ";
+            }
+            std::cout << ")";
+        }
+        if (i < v.size() - 1) std::cout << " , ";
     }
+    std::cout << "]" << std::endl; // End after printing VEC<T>
 }
 
+// Function to generate a VEC<T> based on an action_t<T>
 template <class T>
 VEC<T> generate(int N, action_t<T> f) {
-    VEC<T> vec;
+    VEC<T> result;
     for (int i = 0; i < N; ++i) {
-        ELEM<T> elem;
-        elem.push_back(f(i));
-        vec.push_back(std::move(elem));
+        result.push_back(ELEM<T>{f(i)});
     }
-    return vec;
+    return result;
 }
 
+// Function to zip two VEC<T> objects
 template <class T>
-VEC<T> zip(VEC<T> &v, VEC<T> &w) {
+VEC<T> zip(VEC<T>& v, VEC<T>& w) {
     VEC<T> result;
-    size_t minSize = std::min(v.size(), w.size());
-    for (size_t i = 0; i < minSize; ++i) {
+    size_t size = std::min(v.size(), w.size());
+    for (size_t i = 0; i < size; ++i) {
         ELEM<T> elem;
         elem.insert(elem.end(), v[i].begin(), v[i].end());
         elem.insert(elem.end(), w[i].begin(), w[i].end());
-        result.push_back(std::move(elem));
+        result.push_back(elem);
     }
     return result;
 }
 
+// Function to filter a VEC<T> based on a pred_t<T>
 template <class T>
-VEC<T> filter(VEC<T> &v, pred_t<T> f) {
+VEC<T> filter(VEC<T>& v, pred_t<T> f) {
     VEC<T> result;
-    for (auto &elem : v) {
-        ELEM<T> filteredElem;
-        for (auto &value : elem) {
-            if (f(value)) {
-                filteredElem.push_back(value);
+    for (auto& elem : v) {
+        if (elem.size() == 1 && f(elem[0])) {
+            result.push_back(elem);
+        }
+    }
+    return result;
+}
+
+// Function to map a VEC<T> using an action_t<T>
+template <class T>
+VEC<T> map(VEC<T>& v, action_t<T> f) {
+    VEC<T> result;
+    for (auto& elem : v) {
+        ELEM<T> newElem;
+        for (auto& val : elem) {
+            newElem.push_back(f(val));
+        }
+        result.push_back(newElem);
+    }
+    return result;
+}
+
+// Function to reduce a VEC<T> into an ELEM<T>
+template <class T>
+ELEM<T> reduce(VEC<T>& v, map_t<T> f, ELEM<T> ident) {
+    ELEM<T> result = ident;
+    for (auto& elem : v) {
+        for (auto& val : elem) {
+            if (result.empty()) {
+                result.push_back(val);
+            } else {
+                result[0] = f(result[0], val);
             }
         }
-        if (!filteredElem.empty()) {
-            result.push_back(std::move(filteredElem));
-        }
     }
     return result;
 }
 
-template <class T>
-VEC<T> map(VEC<T> &v, action_t<T> f) {
-    VEC<T> result;
-    for (auto &elem : v) {
-        ELEM<T> transformedElem;
-        for (auto &value : elem) {
-            transformedElem.push_back(f(value));
-        }
-        result.push_back(std::move(transformedElem));
-    }
-    return result;
-}
+// Test Functions
+int f(int x) { return x * x; }                    // Squares a number
+bool g(int x) { return x > 0; }                   // Returns true if > 0
+int h(int x) { return x % 2; }                    // Returns 0 or 1
+int k(int x, int y) { return x + y; }             // Adds two numbers
+std::string k(std::string x, std::string y) { return x + y; } // Concatenates strings
+char k(char x, char y) { return x; }              // Returns first char
 
-template <class T>
-ELEM<T> reduce(VEC<T> &v, map_t<T> f, ELEM<T> ident) {
-    for (auto &elem : v) {
-        for (auto &value : elem) {
-            ident[0] = f(ident[0], value);
-        }
-    }
-    return ident;
-}
-
-// Main program
 int main() {
-    // Initialize two vectors of integers
     VEC<int> v;
     initVec(v, ELEM<int>{1, 2, 3, 4});
-
     VEC<int> w;
     initVec(w, ELEM<int>{-1, 3, -3, 4});
-
-    std::cout << "Initial Vectors:" << std::endl;
     printVec(v);
+    std::cout << std::string(10, '*') << std::endl;
     printVec(w);
-
     std::cout << std::string(10, '*') << std::endl;
 
-    // Zip v and w
     VEC<int> z = zip(v, w);
     printVec(z);
-
     std::cout << std::string(10, '*') << std::endl;
 
-    // Zip z with itself
     VEC<int> x = zip(z, z);
     printVec(x);
-
     std::cout << std::string(10, '*') << std::endl;
 
-    // Generate squares of numbers from 0 to 9
-    VEC<int> a = generate(10, [](int x) { return x * x; });
+    VEC<int> a = generate(10, f);
     printVec(a);
 
-    // Filter out non-positive numbers from w
-    VEC<int> y = filter(w, [](int x) { return x > 0; });
+    VEC<int> y = filter(w, g);
     printVec(y);
 
-    // Map positive numbers in w to 1 and others to 0
-    VEC<int> u = map(w, [](int x) { return x > 0 ? 1 : 0; });
+    VEC<int> u = map(w, h);
     printVec(u);
 
-    // Reduce u to sum of elements
-    ELEM<int> e = reduce(u, [](int x, int y) { return x + y; }, ELEM<int>{0});
+    ELEM<int> e = reduce(u, k, ELEM<int>{0});
     printElem(e);
 
     std::cout << std::endl << std::string(10, '$') << std::endl;
 
-    // Initialize vector of strings
     VEC<std::string> ws;
     initVec(ws, ELEM<std::string>{"hello", "there", "franco", "carlacci"});
     printVec(ws);
-
-    // Reduce strings to a single string
-    ELEM<std::string> es = reduce(ws, [](std::string a, std::string b) { return a + " " + b; }, ELEM<std::string>{""});
+    ELEM<std::string> es = reduce(ws, k, ELEM<std::string>{""});
     printElem(es);
 
-    // Initialize vector of characters
     VEC<char> wc;
     initVec(wc, ELEM<char>{'a', 'b', 'c', 'd'});
-
     std::cout << std::endl << std::string(10, '$') << std::endl;
     printVec(wc);
-
-    // Reduce characters to the maximum character
-    ELEM<char> ec = reduce(wc, [](char a, char b) { return a > b ? a : b; }, ELEM<char>{' '});
+    ELEM<char> ec = reduce(wc, k, ELEM<char>{' '});
     std::cout << std::endl << std::string(10, '$') << std::endl;
     printElem(ec);
 
