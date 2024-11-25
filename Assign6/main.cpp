@@ -1,5 +1,5 @@
 #include "memory_allocation.h"
-
+#include <climits>
 int main() {
     MemoryAllocator allocator;
     allocator.run_simulation();
