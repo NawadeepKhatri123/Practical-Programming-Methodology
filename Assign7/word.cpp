@@ -75,7 +75,7 @@ DICTION countTextFile(DICTION& stats) {
         // Read each word in the line
         while (ss >> word) {
             wordCount++;
-            stats.str += word;
+ 		stats.str += word;          
 
             // Split word into alphabetic chunks
             vector<WORD> cleanedWords = splitWord(word);
@@ -83,11 +83,14 @@ DICTION countTextFile(DICTION& stats) {
             // Count letters in the word and store them
             for (const auto& clean : cleanedWords) {
                 stats.freqWord.insert({clean.length(), clean});
+ 
+		stats.longWord.push(clean);
                 for (char c : clean) {
                     stats.wordFreq[c]++;
                     letterCount++;
                 }
             }
+	    stats.str += " ";
         }
     }
 
@@ -96,23 +99,38 @@ DICTION countTextFile(DICTION& stats) {
 
 int main() {
     int highest{0};
+    string longest_word;
     vector<int> vec;
     DICTION stats{};
     countTextFile(stats);
 
-    cout << "words in the dictionary : ";
-    for (const auto& pair : stats.freqWord) {
-        cout << pair.second << ", ";
+     for (const auto& pair : stats.freqWord) {
+	    
+	     stats.word[(pair.second)]++;
+	     if (pair.first > highest){
+		highest = pair.first;
+		longest_word = pair.second;
+	     }
+	    
+	}
+    cout<<endl;
+    cout << "Words in the dictionary : ";
+    for(const auto& pair : stats.word){
+	cout<<pair.first << "  ";
     }
-    cout << endl;
+    cout << endl<<endl;
 
-    cout << "Number of Letters : " << get<0>(stats.stats1) << '\n';
+    cout << "Number of Letters : " << stats.str.length() << '\n';
     cout << "Number of Words : " << get<1>(stats.stats1) << '\n';
-    cout << "Number of lines : " << get<2>(stats.stats1) << '\n';
+    cout << "Number of lines : " << get<2>(stats.stats1) << "\n\n";
 
     // prints the letter fequency
-    cout << "Letters in the dictionary : " << endl;
+    
+    cout<<"                /---------------------------\\"<<endl;
+    cout<<"                |         LETTER FREQ       |"<<endl;
+    cout<<"	        \\---------------------------/"<<endl<<endl;
     for (const auto& pair : stats.wordFreq) {
+	cout<<"                     ";
         cout << pair.first << " : ";
         for (int i = 0; i < pair.second; i++) {
             cout << "*";
@@ -121,16 +139,15 @@ int main() {
     }
 
     //prints the word frequecy
-    cout << "words in the dictionary : " << endl;
-    
-    for (const auto& pair : stats.freqWord) {
-	    stats.word[(pair.second)]++;
-	    
-        }
+   cout<<endl; 
+    cout<<"                /---------------------------\\"<<endl;
+    cout<<"                |         DICTIONARY        |"<<endl;
+    cout<<"	        \\---------------------------/"<<endl;
+   
     cout << endl;
-    int count = 0;
+    highest = 0;
     for (const auto& pair :stats.word){
-
+	cout<<"                ";
 	 cout << setw(10)<<left<<pair.first <<setw(20)<<right<<pair.second<< endl;
 	 vec.push_back(pair.second);
 	 if (pair.second > highest){
@@ -138,10 +155,13 @@ int main() {
 	    }
     }
 
-    cout<<"the highest is "<<highest<<endl;
-
+    cout<<endl<<endl<<endl;
+    cout<<"                /---------------------------\\"<<endl;
+    cout<<"                |         HISTOGRAM         |"<<endl;
+    cout<<"	        \\---------------------------/"<<endl;
+    cout<<"       |---------------------------------------------|"<<endl;         
     for (int i = highest; i > 0;i--){
-	cout<<"        ";
+	cout<<"       |";
 	for (int j = 0; j < vec.size(); j++){
 		if (vec[j] == i){
 			cout <<setw(6)<<"*";
@@ -150,7 +170,7 @@ int main() {
 			cout <<setw(6)<<" ";
 		}
 	}
-	cout <<endl;
+	cout <<"   |"<<endl;
     }
 
     // histogram
@@ -160,7 +180,8 @@ int main() {
     int den = 36;
     int current = 0;
     int current2 = 0;
-    cout << "------------------------------------------------------------"<<endl;
+    int count = 0;
+    cout << "       |---------------------------------------------|"<<endl;
     cout<<"        ";
     for (int i = 0; i < vec.size();i++){
 	cout << setw(6) << "^";
@@ -184,18 +205,33 @@ int main() {
 		len = len+6;
 		if(current2 == 0){
 		for(int j = 0; j < den;j++){
-			cout<<"|";
+			if(count == 5){
+				cout<<"|";
+				count = 0;
+			}else{
+				cout<<" ";
+				count++;
+			}
 			current2++;
 		}}else {
 		 	for (int j = 0; j < (den);j++){
-				cout<<"|";
+				if(count == 5){
+					cout<<"|";
+					count = 0;
+				}else{
+					cout<<" ";
+					count++;
+				}
 			}
+			
 
 		}
 		den = den-6;
 		cout<<endl;
 		current = 0;
     }
+    cout<<endl<<"Longest Word is :"<<longest_word<<endl<<endl;
+    
 
     return 0;
 }
