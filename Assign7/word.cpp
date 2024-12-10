@@ -7,10 +7,22 @@
 #include <queue>
 #include <map>
 #include <set>
-#include <regex>
 #include <iomanip>
 
 using namespace std;
+
+//--------------------------------------------------------------------------------------------------------
+//definig a struct to compare strings
+
+struct Compare{	// comparator for the priority queue
+	bool operator()(const string& a, const string& b){
+		return a.length()<b.length();// compare the lengths of the string
+	}
+
+};
+
+//-------------------------------------------------------------------------------------------------------
+//creating alias
 
 using COUNTER = tuple<int, int, int>;  // Tuple to hold number of letters, words, and lines
 using WORD = std::string;		// use to store the string
@@ -18,20 +30,23 @@ using WORD_LIST = std::set<WORD>;	// sort the characters
 using WORD_FREQ_LIST = std::map<char,int>;	// use to store the letters and occurrences
 using WORD_FREQ = std::map<WORD,int>;
 using FREQ_WORD_LIST = std::multimap<int,WORD>;	// use to store the words and occurrences
-using LONGEST = std::priority_queue<WORD>;	// store the longest word
+using LONGEST = std::priority_queue<WORD,vector<WORD>,Compare>;	// store the longest word
 
+//--------------------------------------------------------------------------------------------------------
+// definig a struct and its members
 
-struct DICTION {
-	COUNTER stats1{0, 0, 0};
-	WORD_LIST words{};
-	WORD_FREQ_LIST wordFreq{};
-	FREQ_WORD_LIST freqWord{};
-	LONGEST longWord{};
-	WORD str{""};
-	WORD_FREQ word{};
+struct DICTION {	
+	COUNTER stats1{0, 0, 0};	// is a tuple
+	WORD_LIST words{};		// is a set
+	WORD_FREQ_LIST wordFreq{};	// is a map
+	FREQ_WORD_LIST freqWord{};	// is a multimap
+	LONGEST longWord{};		// is a priority queue
+	WORD str{""};			// is a string
+	WORD_FREQ word{};		// is a map 
 };
 
-// Function to split a word into valid alphabetic chunks (ignoring numbers/special characters)
+//--------------------------------------------------------------------------------------------------------
+// remove is123is to is is 
 vector<WORD> splitWord(const WORD& word) {
     vector<WORD> result;
     string clean = "";
@@ -52,8 +67,9 @@ vector<WORD> splitWord(const WORD& word) {
     return result;
 }
 
+//-------------------------------------------------------------------------------------------------------
 // Function to count letters, words, and lines in a file and store all letters in a string
-DICTION countTextFile(DICTION& stats) {
+DICTION Extract(DICTION& stats) {
 
     int& letterCount = get<0>(stats.stats1);
     int& wordCount = get<1>(stats.stats1);
@@ -64,56 +80,57 @@ DICTION countTextFile(DICTION& stats) {
         cerr << "Error opening file!" << '\n';
         return stats;  // Return the empty struct if file couldn't be opened
     }
-
+//-------------------------------------------------------------------------------------------------------
+// start extarcting from the file
     WORD word;
-
     // Read each line from the file
-    while (std::getline(file, word)) {
+    while (getline(file, word)) {
 
         stringstream ss(word);
 
         // Read each word in the line
         while (ss >> word) {
-            wordCount++;
- 		stats.str += word;          
+            wordCount++;	//increase the word count
+ 	    stats.str += word;  // append the string with the new word         
 
-            // Split word into alphabetic chunks
-            vector<WORD> cleanedWords = splitWord(word);
+            // Split word to remove any *special characters
+            vector<WORD> cleanedWords = splitWord(word); // call the function
 
             // Count letters in the word and store them
             for (const auto& clean : cleanedWords) {
-                stats.freqWord.insert({clean.length(), clean});
- 
-		stats.longWord.push(clean);
+                stats.freqWord.insert({clean.length(), clean});	// add to freqWord
+		stats.longWord.push(clean);		// add to the queue
                 for (char c : clean) {
-                    stats.wordFreq[c]++;
-                    letterCount++;
+                    stats.wordFreq[c]++;	// add to wordFreq
+                    letterCount++;		// the number of letters
                 }
             }
-	    stats.str += " ";
+	    stats.str += " ";	// add spacing to the string , make it look nice bro
         }
     }
 
-    return stats;  // Return the struct with all the counts and letters
+    return stats;  // Return 
 }
+//--------------------------------------------------------------------------------------------------------
+//main method starts here
 
 int main() {
-    int highest{0};
-    string longest_word;
-    vector<int> vec;
-    DICTION stats{};
-    countTextFile(stats);
 
-     for (const auto& pair : stats.freqWord) {
+    int highest{0};		// get the highest number of same characters
+    vector<int> vec;		// vector for getting the counts for histogram 
+    DICTION stats{};		// initialzie stats
+    Extract(stats);	// call the function
+
+//-------------------------------------------------------------------------------------------------------
+// copy the words and add the number of occurence to word from freqWord 
+    for (const auto& pair : stats.freqWord) {
 	    
-	     stats.word[(pair.second)]++;
-	     if (pair.first > highest){
-		highest = pair.first;
-		longest_word = pair.second;
-	     }
-	    
-	}
+	     stats.word[(pair.second)]++;	// add words into a new function which has occurence
+	} 
     cout<<endl;
+
+//--------------------------------------------------------------------------------------------------------
+// print the words in the dicitonay
     cout << "Words in the dictionary : ";
     for(const auto& pair : stats.word){
 	cout<<pair.first << "  ";
@@ -124,87 +141,99 @@ int main() {
     cout << "Number of Words : " << get<1>(stats.stats1) << '\n';
     cout << "Number of lines : " << get<2>(stats.stats1) << "\n\n";
 
-    // prints the letter fequency
+//-------------------------------------------------------------------------------------------------------
+// prints the letter fequency
     
     cout<<"                /---------------------------\\"<<endl;
     cout<<"                |         LETTER FREQ       |"<<endl;
     cout<<"	        \\---------------------------/"<<endl<<endl;
+
+    // using the wordFreq to get the words and the number of occurence
     for (const auto& pair : stats.wordFreq) {
 	cout<<"                     ";
         cout << pair.first << " : ";
         for (int i = 0; i < pair.second; i++) {
-            cout << "*";
+            cout << "*";	// using * for each occurrence
         }
         cout << endl;
     }
 
-    //prints the word frequecy
+//-------------------------------------------------------------------------------------------------------
+//prints the word frequecy
    cout<<endl; 
     cout<<"                /---------------------------\\"<<endl;
     cout<<"                |         DICTIONARY        |"<<endl;
     cout<<"	        \\---------------------------/"<<endl;
    
     cout << endl;
-    highest = 0;
+    // using word to print the dicitonary the words and their occurrence
     for (const auto& pair :stats.word){
 	cout<<"                ";
-	 cout << setw(10)<<left<<pair.first <<setw(20)<<right<<pair.second<< endl;
-	 vec.push_back(pair.second);
-	 if (pair.second > highest){
+	 cout << setw(10)<<left<<pair.first <<setw(18)<<right<<pair.second<< endl;	
+	 vec.push_back(pair.second);		// push values into the vector
+	 if (pair.second > highest){		// get the number of highest occurence
 		highest = pair.second;
 	    }
     }
-
+//-------------------------------------------------------------------------------------------------------    
+// print the histogram
     cout<<endl<<endl<<endl;
     cout<<"                /---------------------------\\"<<endl;
     cout<<"                |         HISTOGRAM         |"<<endl;
     cout<<"	        \\---------------------------/"<<endl;
-    cout<<"       |---------------------------------------------|"<<endl;         
+    cout<<"       |---------------------------------------------|"<<endl;   
+    
+    // loop to first print the occurrence using '*',highest and vector
     for (int i = highest; i > 0;i--){
 	cout<<"       |";
 	for (int j = 0; j < vec.size(); j++){
 		if (vec[j] == i){
 			cout <<setw(6)<<"*";
-			vec[j]--;
+			vec[j]--;	//decrease the value of the element everytime "*" is printed
 		}else{
 			cout <<setw(6)<<" ";
 		}
 	}
 	cout <<"   |"<<endl;
     }
+//-------------------------------------------------------------------------------------------------------
+// prints the categories and the arrows headache
 
-    // histogram
-
-    int len = 11;
-    int height = 2;
-    int den = 36;
-    int current = 0;
-    int current2 = 0;
-    int count = 0;
+    int len = 11;	// 11 is the distance from the column{0} to where the first * is printed
+    int den = 36;	// for printing "|" that points to the "*"
+    int current = 0;	// used for spacing
+    int current2 = 0;	// just to print the first " |"
+    int count = 0;	// used for spacing
     cout << "       |---------------------------------------------|"<<endl;
     cout<<"        ";
+
     for (int i = 0; i < vec.size();i++){
-	cout << setw(6) << "^";
+	cout << setw(6) << "^";		// prints the pointers "^" on the chart
     }
     cout << endl;
+    
+    // prints the "-" for each element
     for (const auto& pair : stats.word){
 		cout << pair.first;
-		if (pair.first.length() == 2){
+		if (pair.first.length() == 2){	// this is only for the first element, used 2 cus my is 2
 			for(int i = 0; i < len;i++){
-				cout<<"-";
+				cout<<"-";	// prints 11 of the dashes
 			}
 		}else{
 			current = pair.first.length() - 2 ;
 			for(int i = 0; i< (len-current);i++){
-				cout <<"-";
+				cout <<"-";	// prints the dashes depending upon the length
 			}
 
 		}
 		cout << "/";
-		
-		len = len+6;
-		if(current2 == 0){
-		for(int j = 0; j < den;j++){
+
+//------------------------------------------------------------------------------------------------------
+//this section deals with printing the vertical arrows for each category
+
+		len = len+6;	// this is used for spacing 
+		if(current2 == 0){	// this is to exclude the first category
+		for(int j = 0; j < den;j++){	
 			if(count == 5){
 				cout<<"|";
 				count = 0;
@@ -226,13 +255,15 @@ int main() {
 			
 
 		}
-		den = den-6;
-		cout<<endl;
-		current = 0;
+		den = den-6;	// reduces the number of time "-" has to printed as the loop goes on
+		cout<<endl;	// new line
+		current = 0;	// set current to 0
     }
-    cout<<endl<<"Longest Word is :"<<longest_word<<endl<<endl;
+//-------------------------------------------------------------------------------------------------------
+// this prints the longest words in the file using the priority queue
+    cout<<endl<<"Longest Word is :"<<stats.longWord.top()<<endl<<endl;
     
 
-    return 0;
+    return 0;	// the program ends here
 }
 
